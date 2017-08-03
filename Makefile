@@ -1,5 +1,6 @@
 CFLAGS  = -g -std=gnu99 -Wall -Werror 
 CFLAGS += -I/opt/redpitaya/include
+CFLAGS += -I/home/redpitaya/RedPitaya/BitBanging
 LDFLAGS = -L/opt/redpitaya/lib
 LDLIBS = -lm -lpthread -lrp -lgsl -lgslcblas -lpthread
 
