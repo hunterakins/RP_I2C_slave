@@ -34,11 +34,11 @@ rp_pinState_t SDA_state;
 rp_pinState_t SCL_state;
 
 struct timespec beg;
-
 int main() {
+	int i;
 	if (rp_Init() < 0) {
 			printf("error with initialization\n");
-		}
+	}
 
 	// initialize pins
 	SDA = RP_DIO1_P;
@@ -74,20 +74,21 @@ int main() {
 			// false alarm
 			retval = 0; 
 		}
-		
 		while (retval == start) { //last bit s a 1
 			// let the clock drop down
 			while (SCL_state) {
 				rp_DpinGetState(SCL, &SCL_state);
 			}
-			clock_gettime(CLOCK_MONOTONIC, &beg);
+			printf("SCL state before for loop :");
+			printf("%d\n", SCL_state);
 			// now the clock is down, got to read the address 
-			int i;
-			for (i = 0; i < 8; i++) {
-				rp_DpinGetState(SCL, &SCL_state);
-				printf("SCL state: ");
-				printf("%d\n", SCL_state);
-				PrintTime(beg);
+			rp_DpinGetState(SDA, &SDA_state);
+			printf("SDA state: ");
+			printf("%d\n", SDA_state);
+			for (i = 0; i < 7; i++) {
+				while(SCL_state) {
+					rp_DpinGetState(SCL, &SCL_state);
+				}
 				while (!SCL_state) {
 					rp_DpinGetState(SCL, &SCL_state);
 				}
@@ -95,9 +96,6 @@ int main() {
 				printf("%d\n", i);
 				fflush(stdout);
 				rp_DpinGetState(SCL, &SCL_state);
-				while(SCL_state) {
-					rp_DpinGetState(SCL, &SCL_state);
-				}
 			}
 			printf("\n");
 			retval = readByte(1); //check address, return 1 if correct
