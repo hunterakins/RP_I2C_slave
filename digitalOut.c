@@ -14,14 +14,17 @@ int main() {
 	}
 	
 	rp_dpin_t output;
-	rp_dpin_t input;
 	output = RP_DIO1_P;
-	input = RP_DIO1_P;
 	rp_DpinSetDirection(output, RP_OUT);
 	rp_DpinSetState(output, RP_HIGH);
-	rp_DpinSetDirection(input, RP_IN);
-	int i;
-	rp_pinState_t state;
+	while(1) {
+		rp_DpinSetState(output, RP_HIGH);
+		usleep(100000);
+		rp_DpinSetState(output, RP_LOW);
+		usleep(100000);
+	}
+	//int i;
+	/*rp_pinState_t state;
 	state = RP_HIGH;
 	for (i = 0; i < 100; i++) {
 		fflush(stdout);		
@@ -37,6 +40,10 @@ int main() {
 			printf("going high\n");
 		}	
 		
+	}
+	*/
+	if (RP_HIGH == 1) {
+		printf("we're in business\n");
 	}
 
 	rp_Release();

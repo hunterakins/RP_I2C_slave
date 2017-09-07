@@ -23,7 +23,7 @@ http://www.cypress.com/file/73106/download
 #define I2C_SLAVE_ADDRESS	0x66
 #define TRANSFER_RATE 400000 // 400kHz transfer rate
 
-
+int init();
 int readByte(bool addrMatch);
 int PrintTime(struct timespec start);
 
@@ -32,7 +32,8 @@ rp_dpin_t SDA;
 
 rp_pinState_t SDA_state;
 rp_pinState_t SCL_state;
-
+char retval;
+bool start;
 struct timespec beg;
 int main() {
 	int i;
@@ -40,65 +41,52 @@ int main() {
 			printf("error with initialization\n");
 	}
 
-	// initialize pins
-	SDA = RP_DIO1_P;
-	SCL = RP_DIO2_P;
-	//listen to master
-	rp_DpinSetDirection(SDA, RP_IN);
-	rp_DpinSetDirection(SCL, RP_IN);
-	
-			
-	
-	rp_DpinGetState(SDA, &SDA_state);
-	rp_DpinGetState(SCL, &SCL_state);
-	
-
-
-	// wait for START call
 
 	while (1) {
+		init();
 		// while SDA is high
 		while (SDA_state) {
 			rp_DpinGetState(SDA, &SDA_state);
 		}	
-		char retval;   // 1 if start, 0 if positive
+		clock_gettime(CLOCK_MONOTONIC, &beg);
+		// now SDA low
 		rp_DpinGetState(SCL, &SCL_state);
-		i2c_trig_t start; 
-		start = I2C_START_DETECTED;
 		// if SCL is high then it's a start condition
 		if (SCL_state) {
 			retval = start;
 		}
-		
 		else {
-			// false alarm
-			retval = 0; 
+			;
 		}
 		while (retval == start) { //last bit s a 1
 			// let the clock drop down
 			while (SCL_state) {
 				rp_DpinGetState(SCL, &SCL_state);
 			}
+			PrintTime(beg);
 			printf("SCL state before for loop :");
 			printf("%d\n", SCL_state);
 			// now the clock is down, got to read the address 
-			rp_DpinGetState(SDA, &SDA_state);
-			printf("SDA state: ");
-			printf("%d\n", SDA_state);
 			for (i = 0; i < 7; i++) {
-				while(SCL_state) {
-					rp_DpinGetState(SCL, &SCL_state);
-				}
-				while (!SCL_state) {
-					rp_DpinGetState(SCL, &SCL_state);
-				}
-				rp_DpinGetState(SDA, &SDA_state);
-				printf("%d\n", i);
-				fflush(stdout);
 				rp_DpinGetState(SCL, &SCL_state);
+				printf("SCL_state: ");
+				printf("%d\n", SCL_state);
+				clock_gettime(CLOCK_MONOTONIC, &beg);
+				while(!SCL_state) {
+					rp_DpinGetState(SCL, &SCL_state);
+				}
+				PrintTime(beg);
+				while (SCL_state) {
+					rp_DpinGetState(SCL, &SCL_state);
+				}
+				printf("SCL_state: ");
+				printf("%d\n", SCL_state);	
+				rp_DpinGetState(SCL, &SCL_state);
+				printf("SCL_state: ");
+				printf("%d\n", SCL_state);
 			}
-			printf("\n");
-			retval = readByte(1); //check address, return 1 if correct
+			printf("made it through the for loop");
+			//retval = readByte(1); //check address, return 1 if correct
 			if ((retval & 0xfe) == I2C_ADDRESS_MISMATCH) {
 				break;
 			}
@@ -129,6 +117,24 @@ int main() {
 	return 0;
 
 }
+
+
+int init() {
+	// initialize pins
+	SDA = RP_DIO1_P;
+	SCL = RP_DIO2_P;
+	//listen to master
+	rp_DpinSetDirection(SDA, RP_IN);
+	rp_DpinSetDirection(SCL, RP_IN);
+	
+			
+	
+	rp_DpinGetState(SDA, &SDA_state);
+	rp_DpinGetState(SCL, &SCL_state);
+	clock_gettime(CLOCK_MONOTONIC, &beg);
+	PrintTime(beg);
+	return 0;
+}	
 
 // if addrMatch is 1 then I am reading an address byte 
 

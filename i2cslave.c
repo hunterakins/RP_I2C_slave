@@ -98,14 +98,14 @@ void start_ISR(rp_dpin_t SDA, rp_dpin_t SCL, rp_pinState_t SDA_state, rp_pinStat
 		return; 
 	}
 	
-	while (retval == start) { //last bit s a 1
+	while (retval == I2C_START_DETECTED) { //last bit s a 1
 		/*
 		printf("reading byte\n");
 		fflush(stdout);
 		printf("retval\t");
 		printf("%d\n", retval);
 		*/
-		retval = readByte(1, SCL, SCL_state, SDA, SDA_state, beg); //check address, return 1 if correct
+		retval = readByte(1, SDA, SCL, SDA_state, SCL_state, beg); //check address, return 1 if correct
 		if ((retval & 0xfe) == I2C_ADDRESS_MISMATCH) {
 			break;
 		}
